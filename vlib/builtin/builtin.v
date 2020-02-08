@@ -83,11 +83,14 @@ pub fn eprintln(s string) {
 		panic('eprintln(NIL)')
 	}
 	$if !windows {
+		/*
+		//  QTODO
 		C.fflush(C.stdout)
 		C.fflush(C.stderr)
 		C.fprintf(C.stderr, '%.*s\n', s.len, s.str)
 		C.fflush(C.stderr)
 		return
+		*/
 	}
 	// TODO issues with stderr and cross compiling for Linux
 	println(s)
@@ -97,12 +100,16 @@ pub fn eprint(s string) {
 	if isnil(s.str) {
 		panic('eprint(NIL)')
 	}
+
 	$if !windows {
+		/*
+		// QTODO
 		C.fflush(C.stdout)
 		C.fflush(C.stderr)
 		C.fprintf(C.stderr, '%.*s', s.len, s.str)
 		C.fflush(C.stderr)
 		return
+		*/
 	}
 	print(s)
 }

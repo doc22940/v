@@ -7,12 +7,12 @@ pub type TypeInfo = Array | ArrayFixed | Map | Struct | MultiReturn
 
 pub struct Type {
 pub:
-	parent     &Type
+	parent  &Type
 mut:
-	info       TypeInfo
-	kind       Kind
-	name       string
-	methods    []Fn
+	info    TypeInfo
+	kind    Kind
+	name    string
+	methods []Fn
 }
 
 pub struct TypeRef {
@@ -48,10 +48,8 @@ pub const (
 )
 
 pub const (
-	builtin_type_names = [
-		'void', 'voidptr', 'charptr', 'byteptr', 'i8', 'i16', 'int', 'i64', 'u16', 'u32', 'u64',
-		'f32' ,'f64', 'string', 'char', 'byte' ,'bool', 'struct', 'array', 'array_fixed', 'map'
-	]
+	builtin_type_names = ['void', 'voidptr', 'charptr', 'byteptr', 'i8', 'i16', 'int', 'i64', 'u16', 'u32', 'u64',
+	'f32', 'f64', 'string', 'char', 'byte', 'bool', 'struct', 'array', 'array_fixed', 'map']
 )
 
 pub enum Kind {
@@ -73,8 +71,8 @@ pub enum Kind {
 	char
 	byte
 	bool
-	//const_
-	//enum_
+	// const_
+	// enum_
 	struct_
 	array
 	array_fixed
@@ -84,7 +82,7 @@ pub enum Kind {
 }
 
 [inline]
-pub fn(t &Type) mr_info() MultiReturn {
+pub fn (t &Type) mr_info() MultiReturn {
 	match t.info {
 		MultiReturn {
 			return it
@@ -96,7 +94,7 @@ pub fn(t &Type) mr_info() MultiReturn {
 }
 
 [inline]
-pub fn(t &Type) array_info() Array {
+pub fn (t &Type) array_info() Array {
 	match t.info {
 		Array {
 			return it
@@ -108,7 +106,7 @@ pub fn(t &Type) array_info() Array {
 }
 
 [inline]
-pub fn(t &Type) array_fixed_info() ArrayFixed {
+pub fn (t &Type) array_fixed_info() ArrayFixed {
 	match t.info {
 		ArrayFixed {
 			return it
@@ -120,7 +118,7 @@ pub fn(t &Type) array_fixed_info() ArrayFixed {
 }
 
 [inline]
-pub fn(t &Type) map_info() Map {
+pub fn (t &Type) map_info() Map {
 	match t.info {
 		Map {
 			return it
@@ -136,6 +134,7 @@ pub fn (t Type) str() string {
 	return t.name
 }
 */
+
 
 pub fn (t &TypeRef) str() string {
 	mut muls := ''
@@ -425,7 +424,7 @@ mut:
 // }
 pub struct Array {
 pub:
-	nr_dims    int
+	nr_dims   int
 mut:
 	elem_type TypeRef
 }
@@ -457,4 +456,20 @@ pub fn (t &Table) get_type(idx int) &Type {
 		panic('get_type: idx 0')
 	}
 	return &t.types[idx]
+}
+
+pub fn (t &TypeRef) element_type() ?TypeRef {
+	if t.typ.kind == .array {
+		info := t.typ.info as Array
+		return info.elem_type
+	}
+	else if t.typ.kind == .map {
+		info := t.typ.info as Map
+		return info.value_type
+	}
+	else if t.typ.kind == .string {
+		// info := t.typ.info as String
+		return TypeRef{}
+	}
+	return none
 }

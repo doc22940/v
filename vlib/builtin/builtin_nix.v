@@ -73,7 +73,8 @@ fn print_backtrace_skipping_top_frames_freebsd(skipframes int) bool {
 	$if freebsd {
 		buffer := [100]byteptr
 		nr_ptrs := C.backtrace(buffer, 100)
-		C.backtrace_symbols_fd(&buffer[skipframes], nr_ptrs - skipframes, 1)
+		diff := nr_ptrs - skipframes // TODO broken without tmp var
+		C.backtrace_symbols_fd(&buffer[skipframes], diff, 1)
 	}
 	return true
 }
