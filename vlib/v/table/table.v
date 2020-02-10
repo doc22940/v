@@ -20,6 +20,7 @@ pub mut:
 	consts          map[string]Var
 	tmp_cnt         int
 	imports         []string
+	vars_to_free    map[string][]Var // key=fn name
 }
 
 pub struct Fn {
@@ -91,7 +92,7 @@ pub fn (t mut Table) register_global(name string, typ TypeRef) {
 		// mod: p.mod
 		// is_mut: true
 		// idx: -1
-		
+
 	}
 }
 
@@ -101,6 +102,11 @@ pub fn (t mut Table) register_var(v Var) {
 		v |
 		idx:t.var_idx,
 		scope_level:t.scope_level
+	}
+	if v.typ.typ.name.starts_with('array_') {
+		t.vars_to_free[t.cur_fn.name] << v
+		// == .array {
+		println('REG ARRAY VAR $v.name')
 	}
 	// t.local_vars << v
 	/*
@@ -223,7 +229,6 @@ pub fn (t &Type) find_method(name string) ?Fn {
 	return none
 }
 
-
 pub fn (s &Type) has_field(name string) bool {
 	s.find_field(name) or {
 		return false
@@ -234,7 +239,7 @@ pub fn (s &Type) has_field(name string) bool {
 pub fn (s &Type) find_field(name string) ?Field {
 	match s.info {
 		Struct {
-		    for field in it.fields {
+			for field in it.fields {
 				if field.name == name {
 					return field
 				}
@@ -300,7 +305,10 @@ pub fn (t mut Table) register_builtin_type(typ Type) int {
 	if existing_idx > 0 {
 		if existing_idx >= string_type_idx {
 			existing_type := t.types[existing_idx]
-			t.types[existing_idx] = { typ | kind: existing_type.kind }
+			t.types[existing_idx] = {
+				typ |
+				kind:existing_type.kind
+			}
 		}
 		return existing_idx
 	}

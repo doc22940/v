@@ -73,7 +73,7 @@ fn (g mut Gen) stmt(node ast.Stmt) {
 			}
 			for i, arg in it.args {
 				mut arg_type := arg.typ.typ.name
-				if i == it.args.len-1 && it.is_variadic {
+				if i == it.args.len - 1 && it.is_variadic {
 					arg_type = 'variadic_$arg.typ.typ.name'
 				}
 				g.write(arg_type + ' ' + arg.name)
@@ -144,6 +144,18 @@ fn (g mut Gen) stmt(node ast.Stmt) {
 			g.write('while (')
 			g.expr(it.cond)
 			g.writeln(') {')
+			for stmt in it.stmts {
+				g.stmt(stmt)
+			}
+			g.writeln('}')
+		}
+		ast.ForInStmt {
+			tmp := g.table.new_tmp_var()
+			idx := g.table.new_tmp_var()
+			g.write('$it.array_type.typ.name $tmp = ')
+			g.expr(it.cond)
+			g.writeln(';')
+			g.writeln('for (int $idx = 0; $idx < ${tmp}.len; $idx++) {')
 			for stmt in it.stmts {
 				g.stmt(stmt)
 			}

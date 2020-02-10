@@ -782,7 +782,7 @@ fn (p mut Parser) for_statement() ast.Stmt {
 		}
 	}
 	// `for i in vals`, `for i in start .. end`
-	else if p.peek_tok.kind == .key_in || p.peek_tok.kind == .comma {
+	else if p.peek_tok.kind in [.key_in, .comma] {
 		var_name := p.check_name()
 		if p.tok.kind == .comma {
 			p.check(.comma)
@@ -794,21 +794,47 @@ fn (p mut Parser) for_statement() ast.Stmt {
 		}
 		p.check(.key_in)
 		start := p.tok.lit.int()
-		p.expr(0)
+		array_expr,typ := p.expr(0)
+		mut is_range := false
 		if p.tok.kind == .dotdot {
+			is_range = true
 			p.check(.dotdot)
 			p.expr(0)
 		}
+		mut elm_type := p.table.find_type('int') or {
+			panic(err)
+		}
+		if !is_range {
+			s := typ.typ.name.all_after('_')
+			x := p.table.find_type(s) or {
+				panic(err)
+			}
+			elm_type = x
+			println('!!!!!!!!!!!!E   $elm_type.name')
+			// elm_type := typ.element_type() or {
+			// panic(err)
+			// }
+		}
+		println('for var $var_name typ=$typ.typ.name')
+		array_type := p.table.type_ref(table.array_type_idx)
 		p.table.register_var(table.Var{
 			name: var_name
-			typ: p.table.type_ref(table.int_type_idx)
+			typ: array_type
+			// typ: elm_type
+			// typ: table.TypeRef{typ:elm_type}
+			
 		})
 		stmts := p.parse_block()
 		// println('nr stmts=$stmts.len')
 		p.table.close_scope()
-		return ast.ForStmt{
+		return ast.ForInStmt{
 			stmts: stmts
 			pos: p.tok.position()
+			cond: array_expr
+			var: var_name
+			array_type: array_type
+			// elm_type: table.TypeRef{typ:elm_type}
+			
 		}
 	}
 	// `for cond {`
@@ -1066,7 +1092,8 @@ fn (p mut Parser) struct_decl() ast.StructDecl {
 		// this allows overiding the builtins type
 		// with the real struct type info parsed from builtin
 		ret = p.table.register_builtin_type(t)
-	} else {
+	}
+	else {
 		ret = p.table.register_type(t)
 	}
 	if ret == -1 {

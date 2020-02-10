@@ -57,6 +57,11 @@ fn foo(a int) {
 	users := [User{}]
 	b := bools[0]
 	mystrings := ['a', 'b']
+	/*
+	for s in mystrings {
+
+	}
+	*/
 	s := mystrings[0]
 	//////////
 	mut x := 0

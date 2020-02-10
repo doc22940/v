@@ -167,20 +167,20 @@ pub fn (c &Checker) call_expr(call_expr ast.CallExpr) table.TypeRef {
 		// for debugging
 		if f.name == 'backtrace_symbols_fd' {
 			println('ARGS FOR: backtrace_symbols_fd:')
-			for i, arg_expr in  call_expr.args {
+			for i, arg_expr in call_expr.args {
 				typ := c.expr(arg_expr)
 				println(' -- $i - $typ.typ.name')
 			}
 		}
 		// TODO: variadic
-		if fn_name != 'printf' && f.args.len > 0 {
-		for i, arg in f.args {
-			arg_expr := call_expr.args[i]
-			typ := c.expr(arg_expr)
-			if !c.table.check(&typ, &arg.typ) {
-				c.error('!cannot use type `$typ.typ.name` as type `$arg.typ.typ.name` in argument to `$fn_name`', call_expr.pos)
+		if !f.is_c && fn_name != 'printf' && f.args.len > 0 {
+			for i, arg in f.args {
+				arg_expr := call_expr.args[i]
+				typ := c.expr(arg_expr)
+				if !c.table.check(&typ, &arg.typ) {
+					c.error('!cannot use type `$typ.typ.name` as type `$arg.typ.typ.name` in argument #${i+1} (`$arg.name`) to `$fn_name`', call_expr.pos)
+				}
 			}
-		}
 		}
 		return f.return_type
 	}
@@ -302,6 +302,8 @@ fn (c &Checker) stmt(node ast.Stmt) {
 				c.stmt(stmt)
 			}
 		}
+		ast.ForInStmt {
+			}
 		ast.ForCStmt {
 			c.stmt(it.init)
 			c.expr(it.cond)
